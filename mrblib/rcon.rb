@@ -3,6 +3,8 @@ class Rcon
 
   def initialize c
     @config = c
+    @user = c[:user] || ENV["user"]
+    raise "invalid user" if @user.nil?
     @cgroup_name = c[:resource][:group] ? c[:resource][:group] : "mruby-virtual"
     @cgroup_root = c[:resource][:root] ? c[:resource][:root] : "/cgroup"
   end
@@ -58,14 +60,14 @@ class Rcon
     end
   end
 
-  def exec_cmd cmd
-    ret = system cmd
+  def exec_cmd user, cmd
+    ret = system "sudo -u #{user} #{cmd}"
     ret
   end
 
   def run
     setup_cgroup @config[:resource]
-    exec_cmd @config[:command]
+    exec_cmd @user, @config[:command]
   end
 
   def setup_cgroup_cpu config

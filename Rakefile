@@ -11,7 +11,7 @@ end
 
 desc "compile binary"
 task :compile => :mruby do
-  sh "cd mruby && MRUBY_CONFIG=#{MRUBY_CONFIG} rake all && cp -p ./bin/mruby ../blk-io-controler"
+  sh "cd mruby && MRUBY_CONFIG=#{MRUBY_CONFIG} rake all && cp -p ./bin/mruby ../rcon"
 end
 
 desc "test"

@@ -1,8 +1,12 @@
-Virtualing.new({
+Rcon.new({
 
-  :cmnd => "./loop.sh"
+  :user => "daemon",
+  :command => "./loop.sh",
 
   :resource => {
+
+    :group => "example-loop",
+
     # CPU [msec] exc: 30000 -> 30%
     :cpu_quota => 30000,
 
