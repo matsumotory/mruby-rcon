@@ -1,4 +1,4 @@
-# rcon
+# mruby-rcon
 
 mruby-rcon is a lightweight virtualization mrbgem for linux processes.
 
