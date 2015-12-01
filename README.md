@@ -1,8 +1,6 @@
 # rcon
 
-rcontroler is a lightweight virtualization tool for linux processes.
-
-
+mruby-rcon is a lightweight virtualization mrbgem for linux processes.
 
 ## build rcon
 ```
