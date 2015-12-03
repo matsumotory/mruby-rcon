@@ -67,7 +67,7 @@ class Rcon
 
   def run
     setup_cgroup @config[:resource]
-    exec_cmd @user, @config[:command]
+    exec_cmd @user, @config[:command] if @config[:pids].nil?
     Cgroup::CPU.new(@cgroup_name).delete
     Cgroup::BLKIO.new(@cgroup_name).delete
     Cgroup::MEMORY.new(@cgroup_name).delete
