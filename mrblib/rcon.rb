@@ -2,9 +2,9 @@ class Rcon
   include Cgroup
 
   def initialize c
-    @config = c
+    @class_config = c
     @user = c[:user] || ENV["USER"]
-    raise "invalid user" if @user.nil? && @config[:pids].nil?
+    raise "invalid user" if @user.nil? && @class_config[:pids].nil?
     @cgroup_name = c[:resource][:group] ? c[:resource][:group] : "mruby-virtual"
     @cgroup_root = c[:resource][:root] ? c[:resource][:root] : "/cgroup"
   end
@@ -66,9 +66,9 @@ class Rcon
   end
 
   def run
-    setup_cgroup @config[:resource]
-    if @config[:pids].nil?
-      exec_cmd @user, @config[:command]
+    setup_cgroup @class_config[:resource]
+    if @class_config[:pids].nil?
+      exec_cmd @user, @class_config[:command]
       Cgroup::CPU.new(@cgroup_name).delete
       Cgroup::BLKIO.new(@cgroup_name).delete
       Cgroup::MEMORY.new(@cgroup_name).delete
@@ -79,10 +79,10 @@ class Rcon
     c = Cgroup::CPU.new @cgroup_name
     c.cfs_quota_us = config[:cpu_quota]
     c.create
-    if config[:pids].nil?
+    if @class_config[:pids].nil?
       c.attach
     else
-      config[:pids].each do |pid|
+      @class_config[:pids].each do |pid|
         c.attach pid
       end
     end
@@ -93,10 +93,10 @@ class Rcon
     io.throttle_read_bps_device = "#{config[:blk_dvnd]} #{config[:blk_rbps]}" if config[:blk_rbps]
     io.throttle_write_bps_device = "#{config[:blk_dvnd]} #{config[:blk_wbps]}" if config[:blk_wbps]
     io.create
-    if config[:pids].nil?
+    if @class_config[:pids].nil?
       io.attach
     else
-      config[:pids].each do |pid|
+      @class_config[:pids].each do |pid|
         io.attach pid
       end
     end
@@ -109,10 +109,10 @@ class Rcon
       mem.oom_control = (config[:oom] == true) ? false : true
     end
     mem.create
-    if config[:pids].nil?
+    if @class_config[:pids].nil?
       mem.attach
     else
-      config[:pids].each do |pid|
+      @class_config[:pids].each do |pid|
         mem.attach pid
       end
     end
@@ -123,7 +123,7 @@ class Rcon
     setup_cgroup_cpu config if config[:cpu_quota]
     setup_cgroup_blkio config if config[:blk_dvnd] && config[:blk_rbps] || config[:blk_wbps]
     setup_cgroup_mem config if config[:mem]
-    if @config[:pids].nil?
+    if @class_config[:pids].nil?
       Signal.trap(:INT) { |signo|
         Cgroup::CPU.new(@cgroup_name).delete
         Cgroup::BLKIO.new(@cgroup_name).delete
