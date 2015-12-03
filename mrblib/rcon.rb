@@ -4,7 +4,7 @@ class Rcon
   def initialize c
     @config = c
     @user = c[:user] || ENV["USER"]
-    raise "invalid user" if @user.nil?
+    raise "invalid user" if @user.nil? && @config[:pids].nil?
     @cgroup_name = c[:resource][:group] ? c[:resource][:group] : "mruby-virtual"
     @cgroup_root = c[:resource][:root] ? c[:resource][:root] : "/cgroup"
   end
