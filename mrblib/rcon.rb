@@ -67,10 +67,12 @@ class Rcon
 
   def run
     setup_cgroup @config[:resource]
-    exec_cmd @user, @config[:command] if @config[:pids].nil?
-    Cgroup::CPU.new(@cgroup_name).delete
-    Cgroup::BLKIO.new(@cgroup_name).delete
-    Cgroup::MEMORY.new(@cgroup_name).delete
+    if @config[:pids].nil?
+      exec_cmd @user, @config[:command]
+      Cgroup::CPU.new(@cgroup_name).delete
+      Cgroup::BLKIO.new(@cgroup_name).delete
+      Cgroup::MEMORY.new(@cgroup_name).delete
+    end
   end
 
   def setup_cgroup_cpu config
@@ -121,17 +123,19 @@ class Rcon
     setup_cgroup_cpu config if config[:cpu_quota]
     setup_cgroup_blkio config if config[:blk_dvnd] && config[:blk_rbps] || config[:blk_wbps]
     setup_cgroup_mem config if config[:mem]
-    Signal.trap(:INT) { |signo|
-      Cgroup::CPU.new(@cgroup_name).delete
-      Cgroup::BLKIO.new(@cgroup_name).delete
-      Cgroup::MEMORY.new(@cgroup_name).delete
-      exit 1
-    }
-    Signal.trap(:TERM) { |signo|
-      Cgroup::CPU.new(@cgroup_name).delete
-      Cgroup::BLKIO.new(@cgroup_name).delete
-      Cgroup::MEMORY.new(@cgroup_name).delete
-      exit 1
-    }
+    if @config[:pids].nil?
+      Signal.trap(:INT) { |signo|
+        Cgroup::CPU.new(@cgroup_name).delete
+        Cgroup::BLKIO.new(@cgroup_name).delete
+        Cgroup::MEMORY.new(@cgroup_name).delete
+        exit 1
+      }
+      Signal.trap(:TERM) { |signo|
+        Cgroup::CPU.new(@cgroup_name).delete
+        Cgroup::BLKIO.new(@cgroup_name).delete
+        Cgroup::MEMORY.new(@cgroup_name).delete
+        exit 1
+      }
+    end
   end
 end
