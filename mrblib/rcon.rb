@@ -3,7 +3,7 @@ class Rcon
 
   def initialize c
     @config = c
-    @user = c[:user] || ENV["user"]
+    @user = c[:user] || ENV["USER"]
     raise "invalid user" if @user.nil?
     @cgroup_name = c[:resource][:group] ? c[:resource][:group] : "mruby-virtual"
     @cgroup_root = c[:resource][:root] ? c[:resource][:root] : "/cgroup"
@@ -68,6 +68,9 @@ class Rcon
   def run
     setup_cgroup @config[:resource]
     exec_cmd @user, @config[:command]
+    Cgroup::CPU.new(@cgroup_name).delete
+    Cgroup::BLKIO.new(@cgroup_name).delete
+    Cgroup::MEMORY.new(@cgroup_name).delete
   end
 
   def setup_cgroup_cpu config
@@ -118,5 +121,17 @@ class Rcon
     setup_cgroup_cpu config if config[:cpu_quota]
     setup_cgroup_blkio config if config[:blk_dvnd] && config[:blk_rbps] || config[:blk_wbps]
     setup_cgroup_mem config if config[:mem]
+    Signal.trap(:INT) { |signo|
+      Cgroup::CPU.new(@cgroup_name).delete
+      Cgroup::BLKIO.new(@cgroup_name).delete
+      Cgroup::MEMORY.new(@cgroup_name).delete
+      exit 1
+    }
+    Signal.trap(:TERM) { |signo|
+      Cgroup::CPU.new(@cgroup_name).delete
+      Cgroup::BLKIO.new(@cgroup_name).delete
+      Cgroup::MEMORY.new(@cgroup_name).delete
+      exit 1
+    }
   end
 end
