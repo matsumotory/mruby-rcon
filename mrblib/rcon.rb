@@ -74,7 +74,13 @@ class Rcon
     c = Cgroup::CPU.new @cgroup_name
     c.cfs_quota_us = config[:cpu_quota]
     c.create
-    c.attach
+    if config[:pids].nil?
+      c.attach
+    else
+      config[:pids].each do |pid|
+        c.attach pid
+      end
+    end
   end
 
   def setup_cgroup_blkio config
@@ -82,7 +88,13 @@ class Rcon
     io.throttle_read_bps_device = "#{config[:blk_dvnd]} #{config[:blk_rbps]}" if config[:blk_rbps]
     io.throttle_write_bps_device = "#{config[:blk_dvnd]} #{config[:blk_wbps]}" if config[:blk_wbps]
     io.create
-    io.attach
+    if config[:pids].nil?
+      io.attach
+    else
+      config[:pids].each do |pid|
+        io.attach pid
+      end
+    end
   end
 
   def setup_cgroup_mem config
@@ -92,7 +104,13 @@ class Rcon
       mem.oom_control = (config[:oom] == true) ? false : true
     end
     mem.create
-    mem.attach
+    if config[:pids].nil?
+      mem.attach
+    else
+      config[:pids].each do |pid|
+        mem.attach pid
+      end
+    end
   end
 
   def setup_cgroup config
