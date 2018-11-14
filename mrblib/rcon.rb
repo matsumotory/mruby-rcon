@@ -41,12 +41,12 @@ class Rcon
     e = Eventfd.new 0, 0
     run_on_fork
     fd = setup_mem_eventfd type, val, e
-    Signal.trap(:INT) { |signo|
+    SignalThread.trap(:INT) { |signo|
       e.close
       IO.new(fd).close
       exit 1
     }
-    Signal.trap(:TERM) { |signo|
+    SignalThread.trap(:TERM) { |signo|
       e.close
       IO.new(fd).close
       exit 1
@@ -124,13 +124,13 @@ class Rcon
     setup_cgroup_blkio config if config[:blk_dvnd] && config[:blk_rbps] || config[:blk_wbps]
     setup_cgroup_mem config if config[:mem]
     if @class_config[:pids].nil?
-      Signal.trap(:INT) { |signo|
+      SignalThread.trap(:INT) { |signo|
         Cgroup::CPU.new(@cgroup_name).delete
         Cgroup::BLKIO.new(@cgroup_name).delete
         Cgroup::MEMORY.new(@cgroup_name).delete
         exit 1
       }
-      Signal.trap(:TERM) { |signo|
+      SignalThread.trap(:TERM) { |signo|
         Cgroup::CPU.new(@cgroup_name).delete
         Cgroup::BLKIO.new(@cgroup_name).delete
         Cgroup::MEMORY.new(@cgroup_name).delete
